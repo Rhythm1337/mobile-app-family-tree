@@ -9,6 +9,12 @@ val apiBaseUrl = (
         ?: "http://10.0.2.2:8000/"
 ).let { if (it.endsWith("/")) it else "$it/" }
 
+val apiKey = (
+    project.findProperty("API_KEY") as String?
+        ?: System.getenv("API_KEY")
+        ?: ""
+)
+
 android {
     namespace = "com.example.familytree"
     compileSdk = 34
@@ -20,12 +26,17 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "API_KEY", "\"$apiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
+        }
         release {
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

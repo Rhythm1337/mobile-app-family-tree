@@ -5,6 +5,7 @@ from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from sqlalchemy.orm import Session
 
 from database import Base, SessionLocal, engine
@@ -16,6 +17,8 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Family Tree API")
 
 MAX_IMAGE_BYTES = int(os.getenv("MAX_IMAGE_BYTES", str(2 * 1024 * 1024)))
+API_KEY = os.getenv("API_KEY")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 raw_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://10.0.2.2:8000")
 allowed_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
@@ -24,7 +27,7 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Key"],
 )
 
 
@@ -34,6 +37,13 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def require_api_key(api_key: str | None = Depends(api_key_header)) -> None:
+    if not API_KEY:
+        raise HTTPException(status_code=500, detail="API key is not configured")
+    if api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 def encode_image(image_data: bytes | None) -> str | None:
@@ -65,7 +75,10 @@ def health() -> dict[str, str]:
 
 
 @app.get("/members", response_model=List[MemberOut])
-def list_members(db: Session = Depends(get_db)) -> List[MemberOut]:
+def list_members(
+    _: None = Depends(require_api_key),
+    db: Session = Depends(get_db),
+) -> List[MemberOut]:
     members = db.query(Member).order_by(Member.id).all()
     return [
         MemberOut(
@@ -80,7 +93,11 @@ def list_members(db: Session = Depends(get_db)) -> List[MemberOut]:
 
 
 @app.get("/members/{member_id}", response_model=MemberOut)
-def get_member(member_id: int, db: Session = Depends(get_db)) -> MemberOut:
+def get_member(
+    member_id: int,
+    _: None = Depends(require_api_key),
+    db: Session = Depends(get_db),
+) -> MemberOut:
     member = db.query(Member).filter(Member.id == member_id).first()
     if member is None:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -94,7 +111,11 @@ def get_member(member_id: int, db: Session = Depends(get_db)) -> MemberOut:
 
 
 @app.post("/members", response_model=MemberOut)
-def create_member(payload: MemberCreate, db: Session = Depends(get_db)) -> MemberOut:
+def create_member(
+    payload: MemberCreate,
+    _: None = Depends(require_api_key),
+    db: Session = Depends(get_db),
+) -> MemberOut:
     try:
         image_data = decode_image(payload.image_base64)
         new_member = Member(

@@ -19,6 +19,7 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       API_BASE_URL: ${{ vars.API_BASE_URL || 'http://10.0.2.2:8000/' }}
+      API_KEY: ${{ secrets.API_KEY || '' }}
 
     steps:
       - name: Checkout
