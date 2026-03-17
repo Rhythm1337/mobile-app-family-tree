@@ -25,13 +25,15 @@ import com.example.familytree.repository.MemberRepository
 @Composable
 fun MemberListScreen(
     repository: MemberRepository,
+    reloadToken: Int,
     onMemberSelected: (MemberDto) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val membersState = remember { mutableStateOf<List<MemberDto>>(emptyList()) }
     val isLoading = remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(reloadToken) {
         isLoading.value = true
         val result = runCatching { repository.fetchMembers() }
         result.onSuccess {
@@ -69,7 +71,7 @@ fun MemberListScreen(
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

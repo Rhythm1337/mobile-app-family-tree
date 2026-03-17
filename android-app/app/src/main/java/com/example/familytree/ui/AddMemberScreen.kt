@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 fun AddMemberScreen(
     repository: MemberRepository,
     onMemberSaved: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val firstName = remember { mutableStateOf("") }
     val lastName = remember { mutableStateOf("") }
@@ -48,7 +49,7 @@ fun AddMemberScreen(
     }
 
     Column(
-        modifier = Modifier.padding(PaddingValues(16.dp)),
+        modifier = modifier.padding(PaddingValues(16.dp)),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         OutlinedTextField(

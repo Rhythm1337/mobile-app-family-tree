@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 fun MemberDetailScreen(
     memberId: Int,
     repository: MemberRepository,
+    modifier: Modifier = Modifier,
 ) {
     val memberState = remember { mutableStateOf<MemberDto?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -43,7 +44,7 @@ fun MemberDetailScreen(
     }
 
     Column(
-        modifier = Modifier.padding(PaddingValues(16.dp)),
+        modifier = modifier.padding(PaddingValues(16.dp)),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         val member = memberState.value

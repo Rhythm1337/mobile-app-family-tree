@@ -3,6 +3,12 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val apiBaseUrl = (
+    project.findProperty("API_BASE_URL") as String?
+        ?: System.getenv("API_BASE_URL")
+        ?: "http://10.0.2.2:8000/"
+).let { if (it.endsWith("/")) it else "$it/" }
+
 android {
     namespace = "com.example.familytree"
     compileSdk = 34
@@ -13,6 +19,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -38,6 +45,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {

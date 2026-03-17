@@ -54,6 +54,16 @@ def decode_image(image_base64: str | None) -> bytes | None:
     return decoded
 
 
+@app.get("/")
+def root() -> dict[str, str]:
+    return {"message": "Family Tree API is running", "docs": "/docs"}
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 @app.get("/members", response_model=List[MemberOut])
 def list_members(db: Session = Depends(get_db)) -> List[MemberOut]:
     members = db.query(Member).order_by(Member.id).all()
