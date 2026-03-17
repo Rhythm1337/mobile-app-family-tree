@@ -16,34 +16,25 @@ on:
 jobs:
   build-debug-apk:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Validate Android project scaffold
-        run: |
-          if [ ! -f "android-app/gradlew" ]; then
-            echo "::error::Missing android-app/gradlew. Initialize a full Android project in android-app first."
-            exit 1
-          fi
-          if [ ! -f "android-app/app/build.gradle" ] && [ ! -f "android-app/app/build.gradle.kts" ]; then
-            echo "::error::Missing app module Gradle file in android-app/app/."
-            exit 1
-          fi
+        uses: actions/checkout@v5
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x android-app/gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug APK
         working-directory: android-app
-        run: ./gradlew --no-daemon assembleDebug
+        run: gradle --no-daemon assembleDebug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
